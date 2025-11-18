@@ -109,7 +109,7 @@ forecasting-uk-ageing-trends/
 |--------|--------|------|
 | **历史人口数据** | `mid_year_population_estimates_uk.xlsx` | 英国各地区 1991-2018 年的人口观测数据，按年龄和性别分组 |
 | **人口投影数据** | `SNPP18dt2.xlsx` | 英国 2018 年发布的官方人口预测数据（2018-2043） |
-| **地区投影数据** | `enppvsumpop20.xls`, `scppvsumpop20.xls`, `wappvsumpop20.xls`, `ukppvsumpop20.xls` | 各地区详细投影数据（英格兰、苏格兰、威尔士、英国整体） |
+| **地区投影数据** | `*vsumpop20.xls` 系列 | 各地区详细投影数据（英格兰、苏格兰、威尔士、英国整体） |
 
 #### 数据提取方式
 ```python
@@ -443,7 +443,7 @@ pd.DataFrame(df_cluster_input_scaled).to_csv('data/processed/ageing_cluster_inpu
 ### 8. 数据处理质量指标
 
 | 指标 | 目标 | 验证方式 |
-|------|------|--------|
+|-------|------|---------------------|
 | **缺失率** | < 1% | `df.isnull().sum() / len(df)` |
 | **重复率** | = 0% | `len(df) == len(df.drop_duplicates())` |
 | **离群点率** | < 2% | 使用 IQR 或 3-sigma 检测 |
@@ -455,7 +455,7 @@ pd.DataFrame(df_cluster_input_scaled).to_csv('data/processed/ageing_cluster_inpu
 完整的数据处理流程在以下文件中实现：
 
 | 文件 | 功能 |
-|------|------|
+|---------------------------|---------------------|
 | `src/preprocess.py` | 英国整体数据清洗 |
 | `src/preprocess_england.py` | 英格兰数据处理 |
 | `src/preprocess_scotland.py` | 苏格兰数据处理 |
