@@ -375,106 +375,70 @@ pd.DataFrame(df_cluster_input_scaled).to_csv('data/processed/ageing_cluster_inpu
 ### 7. 数据处理流程图
 
 ```
-+--------------------------------------------+
-|    Data Processing Pipeline (ETL)          |
-+--------------------------------------------+
++----------------------------------------+
+|        数据处理完整流程 (ETL)           |
++----------------------------------------+
 
 +--------------------+
-| Raw Excel/XLS Data |
-| (data/raw/)        |
+|  原始Excel/XLS     |
+|   数据文件         |
+|  (data/raw/)       |
 +--------+-----------+
          |
-         v Extract (pandas/openpyxl)
+    v 数据采集 (Extract)
 +--------------------+
-| Raw DataFrame      |
-| (Multiple Sources) |
+|   原始数据         |
+|  DataFrame         |
+|  (多源数据)        |
 +--------+-----------+
          |
-         v Transform - Data Cleaning
+   v 数据清洗 (Cleaning)
 +--------------------+
-| 1. Missing Values  |
-| 2. Type Casting    |
-| 3. Deduplication   |
-| 4. Outlier Detect  |
+| 1. 缺失值处理      |
+| 2. 数据类型转换    |
+| 3. 去重            |
+| 4. 异常值检测      |
 +--------+-----------+
          |
-         v Transform - Data Fusion
+    v 数据融合 (Fusion)
 +--------------------+
-| 1. Format Std      |
-| 2. Merge Hist+Proj |
-| 3. Region Unify    |
-| 4. Year Alignment  |
+| 1. 格式标准化      |
+| 2. 历史+投影合并   |
+| 3. 地区数据统一    |
+| 4. 年份对齐        |
 +--------+-----------+
          |
-         v Feature Engineering
+  v 特征工程 (Feature)
 +--------------------+
-| 1. Aging Ratio 65+ |
-| 2. Time Features   |
-| 3. Trend Features  |
-| 4. Rolling Average |
+| 1. 老龄化比例      |
+| 2. 时间特征        |
+| 3. 趋势特征        |
+| 4. 滚动平均        |
 +--------+-----------+
          |
-         v Validate - Quality Check
+   v 数据验证 (Validate)
 +--------------------+
-| 1. Completeness    |
-| 2. Consistency     |
-| 3. Statistics      |
+| 1. 完整性检查      |
+| 2. 一致性验证      |
+| 3. 统计验证        |
 +--------+-----------+
          |
-         v Load - Export Data
+   v 数据导出 (Load)
 +--------------------+
 | data/processed/    |
-| - cleaned_pop      |
-| - ageing_ratio     |
-| - merged_data      |
-| - region_clean     |
-| - cluster_input    |
+| • 清洗数据         |
+| • 老龄化比例       |
+| • 融合数据         |
+| • 地区数据         |
+| • 聚类输入数据     |
 +--------+-----------+
          |
-         v Downstream Usage
+    v 下游应用
 +--------------------+
-| • Prophet/ARIMA    |
-| • KMeans Cluster   |
-| • Visualization    |
+| • 时间序列预测     |
+| • 聚类分析         |
+| • 结果可视化       |
 +--------------------+
-```
-
-**流程说明（简体中文）：**
-
-```
-┌─ 数据采集 (Extract)
-│  └─ 从多个 Excel/XLS 文件读取 ONS 原始数据
-│
-├─ 数据清洗 (Transform - Cleaning)
-│  ├─ 缺失值处理
-│  ├─ 数据类型转换
-│  ├─ 去重
-│  └─ 异常值检测与处理
-│
-├─ 数据融合 (Transform - Fusion)
-│  ├─ 格式标准化（宽→长）
-│  ├─ 历史+投影数据合并
-│  ├─ 地区数据统一
-│  └─ 年份对齐
-│
-├─ 特征工程 (Feature Engineering)
-│  ├─ 计算老龄化比例（65+）
-│  ├─ 时间特征提取
-│  ├─ 趋势特征计算
-│  └─ 滚动平均平滑
-│
-├─ 数据验证 (Validate)
-│  ├─ 完整性检查
-│  ├─ 一致性验证
-│  └─ 统计验证
-│
-├─ 数据导出 (Load)
-│  └─ 输出到 CSV 格式
-│
-└─ 下游使用
-   ├─ 时间序列预测（Prophet/ARIMA）
-   ├─ 聚类分析（KMeans）
-   └─ 可视化展示
 ```
 
 ### 8. 数据处理质量指标
