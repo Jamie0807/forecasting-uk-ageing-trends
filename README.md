@@ -10,7 +10,7 @@
 |-----|------|--------|
 | **[README.md](./README.md)** | 项目完整说明文档 | 了解项目的技术细节和实现 |
 | **[PROJECT_SUMMARY_FOR_RESUME.md](./PROJECT_SUMMARY_FOR_RESUME.md)** | 简历版本总结 | 一般性的简历或面试 |
-| **[PROJECT_SUMMARY_HUAWEI_OPTIMIZED.md](./PROJECT_SUMMARY_HUAWEI_OPTIMIZED.md)** | 华为云职位优化版 | 针对华为等AI/大数据公司面试 |
+| **[PROJECT_SUMMARY_COMPANY_OPTIMIZED.md](./PROJECT_SUMMARY_COMPANY_OPTIMIZED.md)** | 职位优化版 | 针对AI/大数据公司面试 |
 
 ---
 
