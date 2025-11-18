@@ -51,7 +51,6 @@
 
 ### 编程语言与基础
 - ✅ **Python**：项目主要语言，具备扎实编程基础
-- ✅ **SQL**：数据查询和处理（可展示数据ETL流程）
 
 ### 数据处理框架
 - ✅ **Pandas/NumPy**：数据清洗、转换、特征工程
@@ -243,7 +242,6 @@ forecasting-uk-ageing-trends/
 ✅ 特征工程  
 ✅ 数据可视化  
 ✅ Python编程  
-✅ SQL  
 ✅ 模块化代码设计  
 ✅ 自动化流程开发  
 ✅ 数据驱动决策  
@@ -261,7 +259,7 @@ forecasting-uk-ageing-trends/
 | 机器学习和深度学习实践 | ✅ Prophet、ARIMA等ML算法 | ⭐⭐⭐ |
 | 数据建模与分析方法 | ✅ 聚类、时间序列分析等 | ⭐⭐⭐ |
 | 主流数据处理工具 | ✅ Pandas、NumPy、Scikit-learn | ⭐⭐⭐ |
-| SQL、Python编程 | ✅ Python编程、ETL流程 | ⭐⭐⭐⭐ |
+| Python编程与ETL流程 | ✅ 完整自动化数据处理流程 | ⭐⭐⭐⭐ |
 
 ---
 
