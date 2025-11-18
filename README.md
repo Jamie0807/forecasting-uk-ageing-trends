@@ -2,6 +2,18 @@
 
 这是一个基于英国国家统计局（ONS）数据的人口老龄化趋势预测和区域差异分析项目。项目采用多种时间序列预测模型（Prophet 和 ARIMA）对英国各地区 65 岁及以上人口比例进行长期预测，并通过聚类分析识别区域老龄化特征。
 
+---
+
+## 📚 相关文档
+
+| 文档 | 描述 | 适用场景 |
+|-----|------|--------|
+| **[README.md](./README.md)** | 项目完整说明文档 | 了解项目的技术细节和实现 |
+| **[PROJECT_SUMMARY_FOR_RESUME.md](./PROJECT_SUMMARY_FOR_RESUME.md)** | 简历版本总结 | 一般性的简历或面试 |
+| **[PROJECT_SUMMARY_HUAWEI_OPTIMIZED.md](./PROJECT_SUMMARY_HUAWEI_OPTIMIZED.md)** | 华为云职位优化版 | 针对华为等AI/大数据公司面试 |
+
+---
+
 ## 📋 项目概述
 
 - **研究对象**：英国各地区（英格兰、威尔士、苏格兰）65 岁及以上人口的比例变化
