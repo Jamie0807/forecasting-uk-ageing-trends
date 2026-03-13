@@ -1,14 +1,14 @@
-# 英国人口老龄化趋势预测项目 - 简历版本
+# 英国人口老龄化趋势预测平台 - 简历版本
 
 ## 📄 项目标题
-**英国人口老龄化趋势预测与区域分析系统**
+**英国人口老龄化趋势预测与交互式分析平台（Python + React 全栈）**
 
 ---
 
 ## 📋 项目描述
 
 ### 背景与目标
-基于英国国家统计局（ONS）官方数据，构建了一套完整的人口老龄化预测和分析系统，旨在预测2020-2070年间英格兰、威尔士、苏格兰等地区65岁及以上人口比例的变化趋势。
+基于英国国家统计局（ONS）官方数据，构建了一套**全栈数据分析与预测平台**：使用 Python 完成数据 ETL 与模型训练，通过 **FastAPI** 将 Prophet、ARIMA、KMeans 模型封装为 REST API，由 **React + Vite** 前端消费接口并以 Recharts 交互式图表呈现，预测 2020–2070 年英国三地区的老龄化趋势。
 
 ---
 
@@ -29,22 +29,29 @@
 - 通过标准化预处理确保分析的公平性和可靠性
 - 提供数据驱动的地区分组依据
 
-### 4. **数据可视化与结果输出** 
-- 设计多维度可视化方案（趋势图、模型对比图、聚类图等）
-- 导出预测结果为CSV格式，便于下游使用和进一步分析
-- 构建完整的从数据输入到结果输出的自动化流程
+### 4. **模型服务化与全栈部署**
+- 使用 **FastAPI** 将 Prophet、ARIMA、KMeans 封装为 REST API，设计 7 个语义化端点（`/api/forecast/prophet`、`/api/cluster` 等）
+- 建立 **`routers/` + `services/`** 双层架构：路由层负责参数校验，服务层封装模型调用，关注点分离
+- 构建 **React + Vite** 前端，Axios 动态调用 API，Recharts 实时渲染交互式预测图表，支持地区 / 模型自由切换
+- 配置 Vite 反向代理与 FastAPI CORS 中间件，解决前后端跨域问题
+- 本地托管 Swagger UI，解决生产环境 CDN 被屏蔽问题，完成 API 文档可访问性部署
 
 ---
 
 ## 🛠️ 技术栈
 
-**编程语言：** Python
+**编程语言：** Python、JavaScript（React）
 
-**主要库：** 
+**后端：**
+- API 框架：FastAPI、uvicorn
 - 数据处理：Pandas, NumPy
-- 统计建模：Scikit-learn, Statsmodels, Prophet
-- 时间序列：ARIMA, PMDarima
-- 可视化：Matplotlib
+- 统计建模：Scikit-learn, Statsmodels, Prophet, PMDarima
+
+**前端：**
+- 框架：React 18、Vite
+- 图表：Recharts
+- 样式：Tailwind CSS
+- HTTP 客户端：Axios
 
 ---
 
@@ -52,12 +59,14 @@
 
 | 指标 | 数值 |
 |------|------|
-| 代码模块数 | 15+ 个 |
+| 代码模块数 | 15+ 个（Python ETL + FastAPI 后端 + React 前端） |
 | 处理地区数 | 3 个（英格兰、威尔士、苏格兰） |
 | 时间跨度 | 50 年（2020-2070） |
-| 预测模型 | 2 种（Prophet + ARIMA） |
-| 可视化图表 | 10+ 个 |
-| 数据处理流程 | 完全自动化 |
+| 预测模型 | 2 种（Prophet + ARIMA），通过 REST API 对外服务 |
+| REST API 端点 | 7 个（数据 / 预测 / 聚类） |
+| 前端交互页面 | 3 个（Dashboard / Forecast / Cluster） |
+| 可视化方案 | Matplotlib 离线图 + Recharts 交互式图表 |
+| 架构 | 前后端分离（FastAPI + React） |
 
 ---
 
@@ -76,11 +85,13 @@
 
 ## 🤔 常见面试问题与回答要点
 
-### Q1: "为什么选择Prophet而不是其他模型？"
+### Q1: "你是怎么把 Python 分析模型部署成 Web 服务的？"
 **回答要点：**
-- Prophet对趋势的稳健性较好，能自动检测变化点
-- 适合长期预测，对异常值的容错性强
-- 相比ARIMA需要手动调参，Prophet更加自动化
+- 原本 Prophet、ARIMA 是独立的 Python 脚本，通过 **FastAPI** 将它们封装成 REST API 端点
+- 采用 **`routers/` + `services/`** 分层：路由层处理 HTTP 参数，服务层调用模型并返回 JSON
+- React 前端用 **Axios** 调用接口，配合 **Vite 反向代理** 解决跨域，数据由 **Recharts** 渲染成交互式图表
+- 模型推理读取预生成的预测 CSV，响应 < 100ms，体验流畅
+- 踩坑经验：Swagger UI 默认走 CDN，国内访问失败，改为本地托管 `swagger-ui-bundle` 包解决
 
 ### Q2: "数据从哪里来？怎么处理的？"
 **回答要点：**
@@ -123,12 +134,20 @@ forecasting-uk-ageing-trends/
 │
 ├── output/                    # 输出结果（图表和预测数据）
 │
-└── src/                       # 源代码（15+个模块）
+├── backend/                   # FastAPI 后端（REST API 服务）
+│   └── app/
+│       ├── routers/           # 路由层（HTTP 参数校验）
+│       └── services/          # 服务层（模型调用逻辑）
+├── frontend/                  # React 前端
+│   └── src/
+│       ├── api/client.js      # Axios API 统一封装
+│       └── pages/             # Dashboard / Forecast / Cluster
+└── src/                       # Python 分析模块（被 services 层调用）
     ├── 数据预处理模块
     ├── 数据融合模块
-    ├── 时间序列预测模块
-    ├── 聚类分析模块
-    └── 可视化模块
+    ├── 时间序列预测模块（Prophet / ARIMA）
+    ├── 聚类分析模块（KMeans）
+    └── 离线可视化模块
 ```
 
 ---
