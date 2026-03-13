@@ -5,3 +5,11 @@ __pycache__/
 .DS_Store
 *.db
 anaconda_projects/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Backend
+backend/__pycache__/
+

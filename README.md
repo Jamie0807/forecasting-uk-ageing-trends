@@ -1,13 +1,55 @@
-# 英国人口老龄化趋势预测
+# 英国人口老龄化趋势预测平台
 
-这是一个基于英国国家统计局（ONS）数据的人口老龄化趋势预测和区域差异分析项目。项目采用多种时间序列预测模型（Prophet 和 ARIMA）对英国各地区 65 岁及以上人口比例进行长期预测，并通过聚类分析识别区域老龄化特征。
+基于 **Python + React** 的全栈数据分析与预测平台，使用英国国家统计局（ONS）数据，对英国各地区 65 岁及以上人口比例进行长期预测与可视化分析。
+
+| 层 | 技术栈 |
+|----|--------|
+| **后端** | Python · FastAPI · Prophet · ARIMA · scikit-learn |
+| **前端** | React 18 · Vite · Recharts · Tailwind CSS |
+| **数据** | ONS 官方 Excel/XLS 数据 |
+
+---
+
+## 🗂️ 项目结构
+
+```
+forecasting-uk-ageing-trends/
+├── backend/                         # FastAPI 后端
+│   ├── app/
+│   │   ├── main.py                  # FastAPI 应用入口，CORS 配置
+│   │   ├── routers/
+│   │   │   ├── data.py              # GET /api/ageing-ratio, /regions, /overview
+│   │   │   ├── forecast.py          # GET /api/forecast/prophet, /forecast/arima, /metrics
+│   │   │   └── cluster.py           # GET /api/cluster
+│   │   └── services/
+│   │       ├── data_service.py      # 读取历史老龄化比例数据
+│   │       ├── forecast_service.py  # 读取 Prophet/ARIMA 预测结果
+│   │       └── cluster_service.py   # KMeans 聚类分析
+│   └── requirements.txt
+├── frontend/                        # React 前端
+│   ├── src/
+│   │   ├── App.jsx                  # 路由配置
+│   │   ├── api/client.js            # Axios API 封装
+│   │   ├── components/Navbar.jsx
+│   │   └── pages/
+│   │       ├── Dashboard.jsx        # 历史趋势总览
+│   │       ├── Forecast.jsx         # 交互式预测图（Prophet / ARIMA）
+│   │       └── Cluster.jsx          # 地区聚类分析
+│   ├── vite.config.js               # Vite + 代理配置
+│   └── package.json
+├── src/                             # 原始分析模块（被后端 services 调用）
+├── data/                            # 数据目录
+├── output/                          # 预测结果输出
+└── main.py                          # 离线批处理入口（保留）
+```
 
 ## 📋 项目概述
 
 - **研究对象**：英国各地区（英格兰、威尔士、苏格兰）65 岁及以上人口的比例变化
-- **预测时间跨度**：2020-2070 年
+- **预测时间跨度**：2020-2150 年
 - **预测方法**：Prophet 时间序列预测、ARIMA 模型、KMeans 聚类分析
 - **数据来源**：英国国家统计局（ONS）官方数据
+
 
 ## 🎯 核心功能
 
@@ -444,38 +486,55 @@ pd.DataFrame(df_cluster_input_scaled).to_csv('data/processed/ageing_cluster_inpu
 
 ---
 
-## �🚀 快速开始
+## 🚀 快速开始
 
 ### 前置要求
-- Python 3.8+
-- pip 或 conda
+- Python 3.8+ (推荐 conda 环境)
+- Node.js 18+
 
-### 安装依赖
+### 1. 生成分析数据（离线批处理）
+
 ```bash
 pip install -r requirements.txt
-```
-
-### 运行项目
-
-完整流程（从数据预处理到最终预测和可视化）：
-```bash
 python main.py
 ```
 
-main.py 包含以下主要步骤：
-1. **数据预处理** - 清洗 ONS 原始数据
-2. **计算老龄化比例** - 按地区计算 65+ 人口占比
-3. **Prophet 预测** - 各地区长期预测
-4. **ARIMA 预测** - 对比分析
-5. **多模型评估** - 计算 MAE、RMSE 等指标
-6. **聚类分析** - 地区老龄化特征分组
-7. **结果可视化** - 生成各类图表和预测数据
+### 2. 启动后端（FastAPI）
 
-## �️ 技术栈
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
 
-### 编程语言与平台
+API 文档自动生成：`http://localhost:8000/docs`
+
+### 3. 启动前端（React + Vite）
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+打开浏览器访问：`http://localhost:5173`
+
+### 主要页面
+
+| 页面 | 路径 | 说明 |
+|------|------|------|
+| **Dashboard** | `/dashboard` | 历史老龄化趋势总览与统计卡片 |
+| **Forecast** | `/forecast` | 交互式预测图（切换地区 / 模型） |
+| **Cluster** | `/cluster` | KMeans 聚类分析与地区分组 |
+
+## 🛠️ 技术栈
+
+### 后端
 - **Python 3.8+** - 核心开发语言
-- **Jupyter Notebook** - 交互式数据分析和探索
+- **FastAPI** - 高性能 REST API 框架
+- **uvicorn** - ASGI 服务器
+
+### 数据分析与建模
 
 ### 数据处理与分析
 | 技术 | 功能 |
@@ -495,60 +554,44 @@ main.py 包含以下主要步骤：
 | 技术 | 功能 |
 |------|------|
 | **Scikit-learn** | KMeans 聚类、数据标准化、模型评估 |
-| **标准化 (StandardScaler)** | 数据预处理、特征归一化 |
 
-### 数据可视化
+### 前端
 | 技术 | 功能 |
 |------|------|
-| **Matplotlib** | 基础绘图、图表生成 |
-| **Pillow** | 图像处理 |
+| **React 18** | 组件化 UI 框架 |
+| **Vite** | 前端构建工具，内置开发代理 |
+| **Recharts** | 基于 React 的数据可视化图表库 |
+| **Tailwind CSS** | 实用优先的 CSS 框架 |
+| **React Router v6** | 前端路由 |
+| **Axios** | HTTP 请求客户端 |
 
-### 性能优化
-| 技术 | 功能 |
-|------|------|
-| **Cython** | C 加速、性能优化 |
-| **Joblib** | 并行计算、缓存管理 |
-| **Threadpoolctl** | 线程池控制 |
-
-### 模型框架
-- **CmdStanPy** - Stan 概率编程框架（Prophet 内部使用）
-
-### 数据输入格式
-- **Excel** (.xlsx, .xls) - ONS 原始数据
-- **CSV** (.csv) - 处理后的数据格式
-
-## �📊 主要依赖
+## 📊 主要依赖
 
 | 包名 | 版本 | 用途 |
 |------|------|------|
+| fastapi | 0.110+ | REST API 框架 |
+| uvicorn | 0.29+ | ASGI 服务器 |
 | pandas | 2.2.2 | 数据处理和操作 |
 | numpy | 1.24.4 | 数值计算 |
-| matplotlib | 3.7.5 | 数据可视化 |
 | prophet | 1.1.7 | Facebook Prophet 时间序列预测 |
 | statsmodels | 0.14.1 | 统计模型和测试 |
 | pmdarima | 2.0.4 | ARIMA 自动参数选择 |
 | scikit-learn | 1.3.2 | 机器学习（聚类、预处理） |
-| scipy | 1.10.1 | 科学计算 |
-| cmdstanpy | 1.2.5 | Stan 概率编程框架 |
-| Cython | 3.1.2 | C 加速编译 |
-| joblib | 1.5.1 | 并行计算 |
-| holidays | 0.78 | 假期处理（Prophet 使用） |
-| pillow | 11.3.0 | 图像处理 |
+| react | 18.3+ | 前端 UI 框架 |
+| recharts | 2.12+ | React 图表库 |
 
-## 📈 输出示例
+## 📈 API 端点
 
-项目会生成以下结果：
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/ageing-ratio` | 各地区历史老龄化比例数据 |
+| GET | `/api/regions` | 可用地区列表 |
+| GET | `/api/overview` | 各地区统计摘要 |
+| GET | `/api/forecast/prophet?region=England` | Prophet 预测序列 |
+| GET | `/api/forecast/arima?region=England` | ARIMA 预测序列 |
+| GET | `/api/metrics` | 模型评估指标对比 |
+| GET | `/api/cluster?n_clusters=3` | KMeans 聚类结果 |
 
-### 可视化图表
-- `ageing_trend_65plus_fixed.png` - 英国 65+ 人口比例历史趋势
-- `prophet_65plus_england.png` - 英格兰 Prophet 预测结果
-- `prophet_65plus_all_regions.png` - 全部地区 Prophet 预测对比
-- `compare_arima_prophet_england.png` - Prophet vs ARIMA 对比
-- `ageing_clusters.png` - 地区聚类可视化
-- `forecast_comparison_regions.png` - 多地区预测对比
-
-### 数据导出
-- `england_forecast.csv` - 英格兰预测数据
 - `england_timeseries.csv` - 英格兰时间序列数据
 - `multi_compare/prophet_arima_metrics.csv` - 模型评估指标
 
