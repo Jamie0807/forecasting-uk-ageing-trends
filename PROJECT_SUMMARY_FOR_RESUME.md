@@ -2,7 +2,7 @@
 
 ## 📄 简历项目条目（直接复制使用）
 
-**英国人口老龄化趋势可视化平台** | React 18 · FastAPI · Recharts · Tailwind CSS · Vite
+**英国人口老龄化趋势预测与可视化平台** | React 18 · FastAPI · Recharts · Tailwind CSS · Vite
 
 > 独立开发的全栈数据可视化 Web 应用。前端使用 React 18 + Vite 构建，设计 Dashboard、Forecast、Cluster 三大交互页面；后端基于 FastAPI 提供 7 个 REST API 端点，将 Python 数据分析模型（Prophet / ARIMA / KMeans）服务化；Axios 统一封装请求层，Recharts 实现动态折线图与聚类趋势图，Vite 反向代理解决跨域，全链路前后端分离。
 
@@ -17,24 +17,26 @@
 - 使用 **React hooks**（`useState`、`useEffect`）管理异步数据请求、loading 状态、错误处理
 - 使用 **lucide-react** 图标库，配合 Tailwind 完成深色顶栏 + 卡片式响应布局
 
-### 2. 交互式数据可视化 ★★★
-- 使用 **Recharts**（LineChart、ReferenceLine、Tooltip、Legend）渲染动态折线图
-- 实现**地区切换**（England / Scotland / Wales）与**模型切换**（Prophet / ARIMA）联动，点击按钮即时刷新图表
-- Forecast 页：历史线（蓝色实线）与预测线（琥珀色虚线）双轨渲染，ReferenceLine 标注预测起始年份
-- Cluster 页：按聚类结果动态着色折线，不同 `n_clusters`（2/3/4）切换时图表实时更新
-- Dashboard 页：将后端扁平 JSON 数据 pivot 转换为 Recharts 多系列格式，封装数据转换工具函数
+### 2. Python 模型服务化与前后端数据流 ★★★
+- 将 Python 离线脚本（**Prophet 时序预测、ARIMA 预测、KMeans 聚类**）通过 **FastAPI** 封装为 REST API，实现模型推理结果的 HTTP 化输出
+- `services/` 层直接调用 Python 模型逻辑并将结果序列化为 JSON（`[{year, value, type}]`），供前端 Recharts 直接消费
+- 前端点击「切换地区 / 模型」→ Axios 请求对应 Python 模型端点 → FastAPI 读取预测结果 → React 状态更新 → Recharts 重绘，完整数据流闭环
+- 封装 `src/api/client.js`：Axios 实例统一设置 `baseURL`、`timeout`，集中管理 7 个对应 Python 模型的 API 函数（`fetchProphetForecast(region)`、`fetchArimaForecast(region)`、`fetchCluster(nClusters)` 等）
+- 配置 **Vite `server.proxy`**，将 `/api` 请求透明转发至 Python 后端（`localhost:8000`），前端无感知跨域
 
-### 3. 前后端接口对接与请求封装 ★★★
-- 封装 `src/api/client.js`：Axios 实例统一设置 `baseURL`、`timeout`，集中管理 7 个 API 函数（`fetchProphetForecast(region)`、`fetchCluster(nClusters)` 等），调用方无需关心 URL 拼接
-- 配置 **Vite `server.proxy`**，将 `/api` 请求转发至 `http://localhost:8000`，开发环境零跨域问题
-- 处理接口异常：`try/catch` 捕获网络错误，组件内设置 `error` state 展示友好提示
+### 3. 交互式数据可视化 ★★★
+- 使用 **Recharts**（LineChart、ReferenceLine、Tooltip、Legend）渲染 Python 模型输出的预测曲线
+- Forecast 页：历史数据（蓝色实线）与 Python Prophet / ARIMA 预测结果（琥珀色虚线）双轨渲染，ReferenceLine 标注预测起始年份，直观展示模型外推段
+- Cluster 页：按 Python KMeans 聚类结果动态着色折线，`n_clusters`（2/3/4）切换时重新请求 Python 端并实时更新图表
+- Dashboard 页：将后端返回的扁平 JSON pivot 转换为 Recharts 多系列格式，封装数据转换工具函数
+- 实现地区 × 模型组合联动：任意切换均触发对应 Python 模型的 API 请求，确保图表数据与模型一一对应
 
-### 4. FastAPI 后端设计与 REST API 开发 ★★
-- 使用 **FastAPI** 设计 RESTful 接口，`routers/`（路由层，负责参数类型校验与 HTTP 响应）+ `services/`（服务层，负责数据读取与模型调用）双层分离
-- 设计 7 个语义化端点：`GET /api/regions`、`GET /api/forecast/prophet?region=England`、`GET /api/cluster?n_clusters=3` 等
-- 配置 **CORS 中间件**（`allow_origins`、`allow_methods`），支持前端跨端口安全访问
-- 解决 Swagger UI 依赖外部 CDN 在国内被屏蔽的问题：挂载本地 `swagger-ui-bundle` 静态目录，覆盖默认 `/docs` 路由，自定义 `swagger_js_url` / `swagger_css_url`
-- 使用 **uvicorn** 启动，`--reload` 热重载支持开发效率
+### 4. FastAPI 后端架构设计 ★★
+- 使用 **FastAPI** 将 Python 分析模块封装为 REST 服务，`routers/`（路由层，HTTP 参数校验）+ `services/`（服务层，调用 Python 模型逻辑）双层分离，关注点清晰
+- 设计 7 个语义化端点：`GET /api/forecast/prophet?region=England`、`GET /api/forecast/arima?region=Scotland`、`GET /api/cluster?n_clusters=3` 等，每个端点对应一个 Python 模型调用
+- 配置 **CORS 中间件**（`allow_origins`、`allow_methods`），支持 React 前端跨端口安全访问 Python 后端
+- 解决 Swagger UI 依赖外部 CDN 被屏蔽问题：挂载本地 `swagger-ui-bundle` 静态目录，重写 `/docs` 端点指向本地资源
+- 使用 **uvicorn** 启动 Python 后端，`--reload` 热重载提升开发效率
 
 ### 5. 工程化配置 ★★
 - `vite.config.js`：配置开发代理、端口（5173），`@vitejs/plugin-react` 插件
