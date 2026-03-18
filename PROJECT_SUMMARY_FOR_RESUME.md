@@ -8,41 +8,40 @@
 
 ---
 
-## 🎯 核心职责（写给 HR / 技术面试官看）
+## 🎯 核心职责
 
 ### 1. React 前端架构与页面开发 ★★★
-- 使用 **React 18 + Vite** 搭建 SPA 项目脚手架，配置 Tailwind CSS 与 PostCSS 完成样式工程化
-- 基于 **React Router v6** 实现客户端路由，设计 `/dashboard`、`/forecast`、`/cluster` 三条路由
-- 拆分可复用组件：`Navbar`（导航）、`MetricsTable`（指标表格）、`StatCard`（统计卡片），props 设计清晰
-- 使用 **React hooks**（`useState`、`useEffect`）管理异步数据请求、loading 状态、错误处理
-- 使用 **lucide-react** 图标库，配合 Tailwind 完成深色顶栏 + 卡片式响应布局
+- **主导** SPA 项目从零搭建：以 **React 18 + Vite 5** 为核心，集成 Tailwind CSS + PostCSS 完成样式工程化，形成统一的开发基线
+- **设计** 三级页面路由体系（**React Router v6**），`/dashboard`、`/forecast`、`/cluster` 各页独立，路由与业务逻辑解耦
+- **抽象** 5+ 个可复用 UI 组件（`Navbar`、`StatCard`、`MetricsTable` 等），遵循单一职责原则，props 接口清晰，复用率覆盖全部页面
+- **运用** `useState` + `useEffect` 构建异步数据流：统一处理请求 loading、接口错误、空数据等边界状态，保障 UI 健壮性
+- **打磨** 视觉细节：lucide-react 图标 + Tailwind 深色顶栏 + 响应式卡片布局，全站 UI 风格一致、可扩展
 
-### 2. Python 模型服务化与前后端数据流 ★★★
-- 将 Python 离线脚本（**Prophet 时序预测、ARIMA 预测、KMeans 聚类**）通过 **FastAPI** 封装为 REST API，实现模型推理结果的 HTTP 化输出
-- `services/` 层直接调用 Python 模型逻辑并将结果序列化为 JSON（`[{year, value, type}]`），供前端 Recharts 直接消费
-- 前端点击「切换地区 / 模型」→ Axios 请求对应 Python 模型端点 → FastAPI 读取预测结果 → React 状态更新 → Recharts 重绘，完整数据流闭环
-- 封装 `src/api/client.js`：Axios 实例统一设置 `baseURL`、`timeout`，集中管理 7 个对应 Python 模型的 API 函数（`fetchProphetForecast(region)`、`fetchArimaForecast(region)`、`fetchCluster(nClusters)` 等）
-- 配置 **Vite `server.proxy`**，将 `/api` 请求透明转发至 Python 后端（`localhost:8000`），前端无感知跨域
+### 2. 全链路数据流设计与前后端集成 ★★★
+- **打通** Python 模型到浏览器的完整数据链路：用户操作 → Axios 触发请求 → FastAPI 路由分发 → `services/` 读取模型结果序列化 JSON → React 状态更新 → Recharts 实时重绘，端到端零断层
+- **封装** `src/api/client.js` 作为统一请求层：Axios 实例集中设置 `baseURL`、`timeout`，暴露 7 个语义化函数（`fetchProphetForecast(region)`、`fetchArimaForecast(region)`、`fetchCluster(nClusters)` 等），调用方零感知底层细节
+- **实现** 地区 × 模型多维联动：任意维度切换均精准触发对应 Python 端点，图表与模型严格一一对应，杜绝脏数据渲染
+- **配置** Vite `server.proxy` 将 `/api` 前缀请求透明转发至 Python 后端，开发阶段无跨域困扰，迁移部署环境仅需更改 `target`，改动成本极低
 
 ### 3. 交互式数据可视化 ★★★
-- 使用 **Recharts**（LineChart、ReferenceLine、Tooltip、Legend）渲染 Python 模型输出的预测曲线
-- Forecast 页：历史数据（蓝色实线）与 Python Prophet / ARIMA 预测结果（琥珀色虚线）双轨渲染，ReferenceLine 标注预测起始年份，直观展示模型外推段
-- Cluster 页：按 Python KMeans 聚类结果动态着色折线，`n_clusters`（2/3/4）切换时重新请求 Python 端并实时更新图表
-- Dashboard 页：将后端返回的扁平 JSON pivot 转换为 Recharts 多系列格式，封装数据转换工具函数
-- 实现地区 × 模型组合联动：任意切换均触发对应 Python 模型的 API 请求，确保图表数据与模型一一对应
+- **深度运用** Recharts（`LineChart`、`ReferenceLine`、`Tooltip`、`Legend`），将 Python 模型输出的时序数据渲染为直观可交互图表
+- **攻克数据格式转换难题**：后端返回扁平数组 `[{year, region, value}]`，手写 pivot 工具函数按 year 聚合、以 region 为 key 重构多系列格式，驱动 Recharts 多折线并排渲染
+- **精细化 Forecast 页**：历史趋势（蓝色实线）与 Prophet / ARIMA 预测段（琥珀色虚线）双轨并排，`ReferenceLine` 精确标注预测起始年份，模型外推区间一目了然
+- **实现 Cluster 页动态着色**：依据 Python KMeans 输出结果为各聚类折线动态分配颜色，`n_clusters`（2 / 3 / 4）切换时重新请求后端并无缝刷新图表，交互体验流畅
+- **优化 Dashboard 多系列渲染**：多地区数据经 pivot 转换后供 Recharts 直接消费，图表渲染性能与数据准确性并重
 
-### 4. FastAPI 后端架构设计 ★★
-- 使用 **FastAPI** 将 Python 分析模块封装为 REST 服务，`routers/`（路由层，HTTP 参数校验）+ `services/`（服务层，调用 Python 模型逻辑）双层分离，关注点清晰
-- 设计 7 个语义化端点：`GET /api/forecast/prophet?region=England`、`GET /api/forecast/arima?region=Scotland`、`GET /api/cluster?n_clusters=3` 等，每个端点对应一个 Python 模型调用
-- 配置 **CORS 中间件**（`allow_origins`、`allow_methods`），支持 React 前端跨端口安全访问 Python 后端
-- 解决 Swagger UI 依赖外部 CDN 被屏蔽问题：挂载本地 `swagger-ui-bundle` 静态目录，重写 `/docs` 端点指向本地资源
-- 使用 **uvicorn** 启动 Python 后端，`--reload` 热重载提升开发效率
+### 4. FastAPI 后端分层架构 ★★
+- **设计** `routers/`（HTTP 入参校验）+ `services/`（模型调用与数据处理）双层架构，关注点彻底分离；路由层极简，业务逻辑内聚于 services，便于独立测试与替换
+- **规范** 7 个 RESTful 语义端点：`GET /api/forecast/prophet?region=England`、`GET /api/forecast/arima?region=Scotland`、`GET /api/cluster?n_clusters=3` 等，每个端点精确对应一个 Python 模型调用，接口设计自文档化
+- **配置** CORS 中间件（`allow_origins`、`allow_methods`），精确授权 React 前端跨端口访问，兼顾安全性与开发便利性
+- **定位并解决** Swagger UI CDN 屏蔽问题：排查出 `/docs` 默认依赖 `cdn.jsdelivr.net` 导致 `ERR_CONNECTION_RESET` 的根因，安装 `swagger-ui-bundle` 并将静态资源挂载到本地路由、重写 `/docs` 端点，彻底消除外部 CDN 依赖风险
+- **提升** 开发效率：uvicorn `--reload` 热重载 + FastAPI 自动类型校验，接口联调周期大幅缩短
 
-### 5. 工程化配置 ★★
-- `vite.config.js`：配置开发代理、端口（5173），`@vitejs/plugin-react` 插件
-- `tailwind.config.js`：自定义 `brand-900` 主题色扩展
-- `postcss.config.js`：集成 Tailwind + Autoprefixer
-- `frontend/package.json`：设置 `"type": "module"` 消除 ESM 警告，管理全部前端依赖版本
+### 5. 前端工程化配置 ★★
+- **`vite.config.js`**：配置 `server.proxy` 代理规则、开发端口（5173）、`@vitejs/plugin-react` 插件，统一开发与构建行为
+- **`tailwind.config.js`**：扩展 `brand-900` 自定义主题色，确保品牌色在全项目中通过 Tailwind 工具类一致复用，避免硬编码色值散落各处
+- **`postcss.config.js`**：集成 Tailwind CSS + Autoprefixer，自动添加浏览器前缀，样式兼容性无需手动维护
+- **`frontend/package.json`**：设置 `"type": "module"` 消除 ESM / CJS 混用警告，锁定全部前端依赖版本，保障构建可复现性
 
 ---
 
