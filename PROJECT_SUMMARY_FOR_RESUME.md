@@ -2,7 +2,7 @@
 
 ## 📄 简历项目条目（直接复制使用）
 
-**英国人口老龄化趋势预测与可视化平台** | React 18 · FastAPI · Recharts · Tailwind CSS · Vite
+**英国人口老龄化趋势预测与可视化平台** | React 18 · FastAPI · Recharts · Tailwind CSS · Vite · Prophet · ARIMA · scikit-learn
 
 > 独立开发的全栈数据可视化 Web 应用。前端使用 React 18 + Vite 构建，设计 Dashboard、Forecast、Cluster 三大交互页面；后端基于 FastAPI 提供 7 个 REST API 端点，将 Python 数据分析模型（Prophet / ARIMA / KMeans）服务化；Axios 统一封装请求层，Recharts 实现动态折线图与聚类趋势图，Vite 反向代理解决跨域，全链路前后端分离。
 
@@ -51,11 +51,15 @@
 |------|------|
 | **前端框架** | React 18、Vite 5 |
 | **路由** | React Router v6 |
-| **数据可视化** | Recharts 2 |
+| **前端数据可视化** | Recharts 2 |
 | **样式** | Tailwind CSS 3、PostCSS |
 | **HTTP 客户端** | Axios |
 | **图标** | lucide-react |
 | **后端框架** | FastAPI、uvicorn |
+| **时间序列预测** | Prophet、ARIMA（pmdarima / statsmodels） |
+| **机器学习** | scikit-learn（KMeans 聚类、数据预处理） |
+| **数据处理** | Pandas、NumPy |
+| **Python 可视化** | Matplotlib |
 | **语言** | JavaScript（ES Module）、Python |
 | **架构模式** | 前后端分离、REST API、SPA |
 
@@ -107,4 +111,5 @@
 3. **后端 API 设计** — FastAPI 分层、CORS、端点设计
 4. **踩坑经验** — CDN 屏蔽问题（体现工程判断力）
 
-**不要主动提** — 数据分析算法细节、Prophet/ARIMA 参数调优（除非面试官追问）
+**前端/全栈岗不要主动深入** — Prophet/ARIMA 参数调优细节（除非面试官追问）
+**数据岗/算法岗可主动提** — 时间序列预测模型选型（Prophet vs ARIMA）、KMeans 聚类分析、Python 数据管道设计
