@@ -2,7 +2,7 @@
 
 - **技术栈**: TypeScript, React 18, Vite, FastAPI, Python, Recharts, Tailwind CSS, Prophet, ARIMA, scikit-learn, Pandas
 
-- **项目简介**: 独立设计并开发了一套全栈数据可视化 Web 应用，将 Python 时间序列预测模型（Prophet / ARIMA）与聚类分析（KMeans）服务化，支持多地区老龄化趋势查询与交互式图表展示，实现从数据清洗、模型训练到前端可视化的完整闭环。
+- **项目简介**: 基于英国国家统计局（ONS）官方人口数据，独立设计并开发了一套全栈数据可视化 Web 应用。后端使用 FastAPI 将 Prophet、ARIMA 时间序列预测模型与 KMeans 聚类分析服务化，对英格兰、苏格兰、威尔士三地区 65+ 老龄化比例进行 2020–2150 年长周期预测；前端基于 React 18 构建三大交互页面，支持地区、模型多维度切换与实时图表渲染；实现从数据清洗、模型训练、API 服务化到前端可视化的完整全栈闭环。
 
 - **工作内容与成果**:
 
