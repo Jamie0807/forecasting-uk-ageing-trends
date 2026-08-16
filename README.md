@@ -1,112 +1,114 @@
-# 英国人口老龄化趋势预测平台
+# UK Ageing Trends Forecasting Platform
 
-基于 **Python + React** 的全栈数据分析与预测平台，使用英国国家统计局（ONS）官方数据，对英国各地区 65 岁及以上人口比例进行长期预测与可视化交互分析。
+[English](README.md) | [中文](README.zh-CN.md)
 
-| 层 | 技术栈 |
-|----|--------|
-| **后端** | Python · FastAPI · Prophet · ARIMA · scikit-learn |
-| **前端** | React 18 · Vite · Recharts · Tailwind CSS |
-| **数据** | ONS 官方 Excel / XLS |
+A full-stack data analytics and forecasting platform built with **Python + React**. It uses official UK Office for National Statistics (ONS) population data to analyse and visualise long-term ageing trends across UK regions, focusing on the share of people aged 65 and over.
+
+| Layer | Stack |
+|---|---|
+| **Backend** | Python, FastAPI, Prophet, ARIMA, scikit-learn |
+| **Frontend** | React 18, Vite, Recharts, Tailwind CSS |
+| **Data** | Official ONS Excel / XLS datasets |
 
 ---
 
-## 🗂️ 项目结构
+## Project Structure
 
-```
+```text
 forecasting-uk-ageing-trends/
-├── backend/                         # FastAPI 后端
+├── backend/                         # FastAPI backend
 │   ├── app/
-│   │   ├── main.py                  # 应用入口，CORS 配置
+│   │   ├── main.py                  # App entry, CORS and OpenAPI setup
 │   │   ├── routers/
-│   │   │   ├── data.py              # /api/ageing-ratio · /regions · /overview
-│   │   │   ├── forecast.py          # /api/forecast/prophet · /forecast/arima · /metrics
+│   │   │   ├── data.py              # /api/ageing-ratio, /regions, /overview
+│   │   │   ├── forecast.py          # /api/forecast/prophet, /forecast/arima, /metrics
 │   │   │   └── cluster.py           # /api/cluster
 │   │   └── services/
-│   │       ├── data_service.py      # 读取历史老龄化比例数据
-│   │       ├── forecast_service.py  # 读取 Prophet / ARIMA 预测结果
-│   │       └── cluster_service.py   # KMeans 聚类分析
+│   │       ├── data_service.py      # Historical ageing ratio data access
+│   │       ├── forecast_service.py  # Prophet / ARIMA forecast result access
+│   │       └── cluster_service.py   # KMeans clustering
 │   └── requirements.txt
-├── frontend/                        # React 前端
+├── frontend/                        # React frontend
 │   ├── src/
-│   │   ├── App.jsx                  # 路由配置（React Router v6）
-│   │   ├── api/client.js            # Axios API 封装
-│   │   ├── components/Navbar.jsx    # 顶部导航栏
+│   │   ├── App.jsx                  # React Router configuration
+│   │   ├── api/client.js            # Axios API client
+│   │   ├── components/Navbar.jsx    # Top navigation
 │   │   └── pages/
-│   │       ├── Dashboard.jsx        # 历史趋势总览 + 统计卡片
-│   │       ├── Forecast.jsx         # 交互式预测图（Prophet / ARIMA）
-│   │       └── Cluster.jsx          # 地区聚类分析
-│   ├── vite.config.js               # Vite + 反向代理配置
+│   │       ├── Dashboard.jsx        # Historical trend overview and stat cards
+│   │       ├── Forecast.jsx         # Interactive Prophet / ARIMA forecast view
+│   │       └── Cluster.jsx          # Regional clustering analysis
+│   ├── vite.config.js               # Vite proxy configuration
 │   └── package.json
-├── src/                             # Python 分析模块（被后端 services 调用）
-│   ├── preprocess*.py               # 各地区数据清洗
-│   ├── merge_projection_data.py     # 历史 + 投影数据融合
-│   ├── model_prophet.py             # Prophet 预测模型
-│   ├── model_arima.py               # ARIMA 模型 & 多模型对比
-│   ├── cluster_analysis.py          # KMeans 聚类
-│   └── plot_*.py                    # 离线可视化脚本
+├── src/                             # Python analysis modules
+│   ├── preprocess*.py               # Regional data cleaning scripts
+│   ├── merge_projection_data.py     # Historical + projection data merge
+│   ├── model_prophet.py             # Prophet forecasting
+│   ├── model_arima.py               # ARIMA modelling and comparison
+│   ├── cluster_analysis.py          # KMeans clustering
+│   └── plot_*.py                    # Offline visualisation scripts
 ├── data/
-│   ├── raw/                         # ONS 原始 Excel / XLS 文件
-│   └── processed/                   # 清洗后的 CSV 文件
-├── output/                          # 预测结果 & 图表输出
-│   └── multi_compare/               # 多模型对比结果
-├── main.py                          # 离线批处理入口（保留）
-└── requirements.txt                 # Python 依赖
+│   ├── raw/                         # Original ONS Excel / XLS files
+│   └── processed/                   # Cleaned CSV files
+├── output/                          # Forecast outputs and generated charts
+│   └── multi_compare/               # Multi-model comparison outputs
+├── main.py                          # Offline batch pipeline entry
+└── requirements.txt                 # Python dependencies
 ```
 
 ---
 
-## 📋 项目概述
+## Overview
 
-| 项目 | 说明 |
-|------|------|
-| **研究对象** | 英格兰、威尔士、苏格兰 65 岁及以上人口比例变化 |
-| **预测跨度** | 2020 – 2150 年 |
-| **预测方法** | Prophet · ARIMA · KMeans 聚类 |
-| **数据来源** | 英国国家统计局（ONS）官方数据 |
-
----
-
-## 🎯 核心功能
-
-### 1. 数据预处理 (`src/preprocess*.py`)
-- 从 ONS Excel / XLS 原始文件中提取人口数据
-- 按年龄、年份、地区进行清洗与整形（宽格式 → 长格式）
-- 支持英格兰、威尔士、苏格兰、英国整体分别处理
-
-### 2. 数据融合 (`src/merge_projection_data.py`)
-- 合并历史观测数据（1991–2018）与官方投影数据（2018–2070）
-- 计算各地区 65+ 人口占比（老龄化比例）
-
-### 3. 时间序列预测
-- **Prophet** — 逻辑增长约束 + 自适应变化点检测 + 滚动平均平滑
-- **ARIMA** — 自动参数搜索（pmdarima）+ AIC 准则选优 + 多地区对比
-
-### 4. 聚类分析 (`src/cluster_analysis.py`)
-- KMeans 对各地区老龄化趋势进行无监督聚类（默认 3 类）
-- StandardScaler 标准化确保公平对比
-
-### 5. 交互式 Web 平台
-- **Dashboard** — 历史趋势折线图 + 各地区统计卡片
-- **Forecast** — 点击切换地区 / 模型，实时渲染预测曲线与评估指标
-- **Cluster** — 可调聚类数，聚类结果分组卡片 + 趋势图
+| Item | Description |
+|---|---|
+| **Research focus** | 65+ population share in England, Wales and Scotland |
+| **Forecast horizon** | 2020-2150 |
+| **Methods** | Prophet, ARIMA, KMeans clustering |
+| **Data source** | UK Office for National Statistics (ONS) |
 
 ---
 
-## 🚀 快速开始
+## Core Features
 
-### 前置要求
+### 1. Data Preprocessing (`src/preprocess*.py`)
+- Extracts population data from official ONS Excel / XLS files.
+- Cleans and reshapes data by age, year and region.
+- Supports England, Wales, Scotland and UK-level processing.
 
-- Python 3.8+（推荐 conda 环境）
-- Node.js 18+
+### 2. Data Integration (`src/merge_projection_data.py`)
+- Merges historical observations with official population projections.
+- Computes the 65+ population share for each region.
 
-### 1. 生成分析数据（离线批处理，仅首次需要）
+### 3. Time-Series Forecasting
+- **Prophet**: trend modelling with changepoint detection and smoothing.
+- **ARIMA**: automatic parameter search with AIC-based model selection.
+
+### 4. Cluster Analysis (`src/cluster_analysis.py`)
+- Applies KMeans to identify regions with similar ageing trajectories.
+- Uses standardised time-series features for fair comparison.
+
+### 5. Interactive Web Platform
+- **Dashboard**: historical trend chart and regional summary cards.
+- **Forecast**: interactive region and model switching with evaluation metrics.
+- **Cluster**: adjustable cluster count with grouped regional trend views.
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.8+; a conda environment is recommended.
+- Node.js 18+.
+
+### 1. Generate analysis data
 
 ```bash
 pip install -r requirements.txt
 python main.py
 ```
 
-### 2. 启动后端（FastAPI）
+### 2. Start the FastAPI backend
 
 ```bash
 cd backend
@@ -114,9 +116,9 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-> 交互式 API 文档：http://localhost:8000/docs
+API documentation: http://localhost:8000/docs
 
-### 3. 启动前端（React + Vite）
+### 3. Start the React frontend
 
 ```bash
 cd frontend
@@ -124,123 +126,145 @@ npm install
 npm run dev
 ```
 
-> 浏览器访问：http://localhost:5173
+Open the app at http://localhost:5173.
 
-### 页面一览
+### Pages
 
-| 路径 | 页面 | 说明 |
-|------|------|------|
-| `/dashboard` | Dashboard | 历史老龄化趋势总览与统计卡片 |
-| `/forecast` | Forecast | 交互式预测图（切换地区 / 模型）+ 评估指标表 |
-| `/cluster` | Cluster | KMeans 聚类分析与地区分组可视化 |
-
----
-
-## 📈 API 端点
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/ageing-ratio` | 各地区历史老龄化比例数据 |
-| GET | `/api/regions` | 可用地区列表 |
-| GET | `/api/overview` | 各地区统计摘要（起止年份、变化量） |
-| GET | `/api/forecast/prophet?region=England` | Prophet 历史 + 预测序列 |
-| GET | `/api/forecast/arima?region=England` | ARIMA 历史 + 预测序列 |
-| GET | `/api/metrics` | Prophet vs ARIMA 评估指标（MAE / RMSE / MAPE） |
-| GET | `/api/cluster?n_clusters=3` | KMeans 聚类结果与趋势数据 |
+| Path | Page | Description |
+|---|---|---|
+| `/dashboard` | Dashboard | Historical ageing trend overview and stat cards |
+| `/forecast` | Forecast | Interactive Prophet / ARIMA forecast chart and metrics table |
+| `/cluster` | Cluster | KMeans clustering analysis and regional grouping |
 
 ---
 
-## 🛠️ 技术栈
+## API Endpoints
 
-### 后端
-
-| 技术 | 用途 |
-|------|------|
-| **Python 3.8+** | 核心开发语言 |
-| **FastAPI** | 高性能 REST API 框架 |
-| **uvicorn** | ASGI 服务器 |
-| **Pandas / NumPy** | 数据处理与数值计算 |
-| **Prophet** | 时间序列趋势预测 |
-| **pmdarima / Statsmodels** | ARIMA 自动参数选择与统计诊断 |
-| **scikit-learn** | KMeans 聚类 + 数据标准化 |
-
-### 前端
-
-| 技术 | 用途 |
-|------|------|
-| **React 18** | 组件化 UI 框架 |
-| **Vite** | 前端构建工具，内置开发代理 |
-| **Recharts** | 基于 React 的交互式图表库 |
-| **Tailwind CSS** | 实用优先的 CSS 框架 |
-| **React Router v6** | 客户端路由 |
-| **Axios** | HTTP 请求客户端 |
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/ageing-ratio` | Historical ageing ratio by region and year |
+| GET | `/api/regions` | Available regions |
+| GET | `/api/overview` | Per-region summary statistics |
+| GET | `/api/forecast/prophet?region=England` | Historical + Prophet forecast series |
+| GET | `/api/forecast/arima?region=England` | Historical + ARIMA forecast series |
+| GET | `/api/metrics` | Prophet vs ARIMA metrics: MAE, RMSE and MAPE |
+| GET | `/api/cluster?n_clusters=3` | KMeans cluster assignments and trend data |
 
 ---
 
-## 📦 主要依赖
+## Tech Stack
 
-| 包名 | 版本 | 用途 |
-|------|------|------|
-| fastapi | 0.110+ | REST API 框架 |
-| uvicorn | 0.29+ | ASGI 服务器 |
-| pandas | 2.2.2 | 数据处理 |
-| numpy | 1.24.4 | 数值计算 |
-| prophet | 1.1.7 | 时间序列预测 |
-| pmdarima | 2.0.4 | ARIMA 自动参数选择 |
-| statsmodels | 0.14.1 | 统计模型 |
-| scikit-learn | 1.3.2 | 聚类与预处理 |
-| react | 18.3+ | 前端 UI |
-| recharts | 2.12+ | React 图表库 |
-| tailwindcss | 3.4+ | CSS 框架 |
+### Backend
+
+| Technology | Purpose |
+|---|---|
+| **Python 3.8+** | Core programming language |
+| **FastAPI** | REST API framework |
+| **uvicorn** | ASGI server |
+| **Pandas / NumPy** | Data processing and numerical computing |
+| **Prophet** | Time-series forecasting |
+| **pmdarima / Statsmodels** | ARIMA modelling and diagnostics |
+| **scikit-learn** | KMeans clustering and preprocessing |
+
+### Frontend
+
+| Technology | Purpose |
+|---|---|
+| **React 18** | Component-based UI |
+| **Vite** | Frontend build tool and dev server |
+| **Recharts** | Interactive React charts |
+| **Tailwind CSS** | Utility-first styling |
+| **React Router v6** | Client-side routing |
+| **Axios** | HTTP client |
 
 ---
 
-## 🔧 离线批处理配置
+## Offline Pipeline Configuration
 
-在 `main.py` 中可调整以下参数：
+The batch pipeline parameters can be adjusted in `main.py`:
 
 ```python
 CONFIG = {
     "regions": ["England", "Wales", "Scotland"],
-    "end_year": 2070,        # 预测终点年份
-    "test_year_start": 2030, # 测试集起始年份
-    "horizon": 30,           # 预测时间跨度（年）
-    "n_clusters": 3,         # 聚类数量
-    "random_state": 42       # 随机种子
+    "end_year": 2070,
+    "test_year_start": 2030,
+    "horizon": 30,
+    "n_clusters": 3,
+    "random_state": 42
 }
 ```
 
 ---
 
-## 📝 模型说明
+## Model Notes
 
 ### Prophet
-- 分段线性 / 逻辑增长趋势 + 季节性分解
-- 自适应变化点检测捕捉趋势转折
-- 滚动平均平滑预测曲线
+- Piecewise trend modelling with changepoint detection.
+- Forecast smoothing for long-term trend readability.
 
 ### ARIMA
-- pmdarima 自动搜索最优 (p, d, q) 参数
-- AIC 准则选优，适合平稳或一阶差分平稳序列
+- Automatic `(p, d, q)` parameter search via `pmdarima`.
+- AIC-based model selection for stationary or differenced time series.
 
-### KMeans 聚类
-- StandardScaler 归一化各地区时序特征
-- 无监督聚类识别老龄化特征相似地区
-- 支持动态调整聚类数（2–4）
-
----
-
-## 💡 项目特点
-
-✅ **全栈架构** — FastAPI 后端 + React 前端，前后端分离  
-✅ **多源数据整合** — 融合 ONS 历史数据与官方投影数据  
-✅ **多模型对比** — Prophet vs ARIMA，量化评估 MAE / RMSE / MAPE  
-✅ **交互式可视化** — 实时切换地区、模型、聚类数  
-✅ **完整 ETL 流程** — 从原始数据到预测结果的端到端工作流  
-✅ **可重现性** — 固定随机种子，结果可复现  
+### KMeans
+- Standardises regional ageing trajectories before clustering.
+- Groups regions by similar long-term ageing patterns.
 
 ---
 
-## 📄 许可证
+## Project Highlights
 
-此项目仅供学术和研究使用。
+- **Full-stack architecture**: FastAPI backend with a React frontend.
+- **Official data workflow**: ONS raw data, cleaned CSV outputs and generated forecasts.
+- **Multi-model comparison**: Prophet vs ARIMA using MAE, RMSE and MAPE.
+- **Interactive visualisation**: Region, model and cluster controls in the browser.
+- **End-to-end ETL pipeline**: From raw data to processed data, forecasts and charts.
+- **Reproducible analysis**: Fixed random seed and committed processed outputs.
+
+---
+
+## Optimization Roadmap
+
+### 1. Engineering and Reproducibility
+- Add a `Makefile` or task runner for common commands such as data generation, backend startup, frontend startup and tests.
+- Add `.env.example` and move configurable paths, ports and API settings out of hard-coded code.
+- Add Docker or `docker-compose` so the full application can be started with one command.
+- Clarify which files are source data, processed data and generated outputs.
+
+### 2. Backend API Quality
+- Cache CSV reads to avoid loading the same processed files on every request.
+- Validate `region` values and return clear 400 / 404 errors for unsupported regions.
+- Add Pydantic response models for API contracts.
+- Improve error handling for missing files, changed column names and empty datasets.
+- Add a `/health` endpoint that reports backend and data availability.
+
+### 3. Forecasting and Analytical Rigor
+- Add confidence intervals to long-term forecasts where model outputs support them.
+- Add a simple baseline model, such as naive or linear trend, to make Prophet / ARIMA gains easier to evaluate.
+- Highlight the best-performing model per region in the metrics table.
+- Document forecasting assumptions, especially where predictions extend beyond official projection horizons.
+
+### 4. Frontend Experience
+- Add key insight cards, such as fastest ageing region, highest latest 65+ share and largest historical change.
+- Let users compare Prophet and ARIMA on the same chart.
+- Add clearer empty, loading, error and retry states.
+- Improve mobile handling for charts and metric tables.
+- Add short interpretation notes so charts communicate conclusions, not just data.
+
+### 5. Testing and Quality Gates
+- Add `pytest` coverage for backend services and API endpoints.
+- Add frontend smoke tests or component tests for the main pages.
+- Add formatting and linting with tools such as `ruff`, ESLint and Prettier.
+- Add GitHub Actions or another CI workflow to run tests and frontend builds.
+
+### 6. Portfolio and Deployment
+- Add screenshots or a short demo GIF to the README.
+- Add a deployment target for the frontend and backend.
+- Include a concise architecture diagram and data-flow diagram.
+- Expand the README with project challenges, decisions and trade-offs for interview use.
+
+---
+
+## License
+
+This project is intended for academic and research use.
