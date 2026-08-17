@@ -1,6 +1,6 @@
 # 英国人口老龄化趋势预测平台
 
-[English](README.md) | [中文](README.zh-CN.md)
+[English](README.md) | [中文](README_CN.md)
 
 基于 **Python + React** 的全栈数据分析与预测平台，使用英国国家统计局（ONS）官方数据，对英国各地区 65 岁及以上人口比例进行长期预测与可视化交互分析。
 

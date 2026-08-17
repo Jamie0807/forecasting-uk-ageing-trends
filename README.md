@@ -1,6 +1,6 @@
 # UK Ageing Trends Forecasting Platform
 
-[English](README.md) | [中文](README.zh-CN.md)
+[English](README.md) | [中文](README_CN.md)
 
 A full-stack data analytics and forecasting platform built with **Python + React**. It uses official UK Office for National Statistics (ONS) population data to analyse and visualise long-term ageing trends across UK regions, focusing on the share of people aged 65 and over.
 
