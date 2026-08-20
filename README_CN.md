@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-基于 **Python + React** 的全栈数据分析与预测平台，使用英国国家统计局（ONS）官方数据，对英国各地区 65 岁及以上人口比例进行长期预测与可视化交互分析。
+基于 **Python + React** 的全栈数据分析与预测平台，使用英国国家统计局（ONS）人口数据，完成地区人口投影清洗、65+ 人口比例计算、Prophet 与 ARIMA 预测对比、KMeans 聚类分析，并通过 FastAPI + React 仪表盘展示结果。
 
 | 层 | 技术栈 |
 |---|---|
@@ -62,8 +62,9 @@ forecasting-uk-ageing-trends/
 | 项目 | 说明 |
 |---|---|
 | **研究对象** | 英格兰、威尔士、苏格兰 65 岁及以上人口比例变化 |
-| **预测跨度** | 2020-2150 |
-| **预测方法** | Prophet, ARIMA, KMeans 聚类 |
+| **批处理预测终点** | 2070（`CONFIG["end_year"]`） |
+| **模型对比跨度** | 测试集切分后的 30 年（`CONFIG["horizon"]`） |
+| **方法** | ONS 数据清洗、Prophet、ARIMA、KMeans 聚类 |
 | **数据来源** | 英国国家统计局（ONS）官方数据 |
 
 ---
@@ -71,17 +72,19 @@ forecasting-uk-ageing-trends/
 ## 核心功能
 
 ### 1. 数据预处理 (`src/preprocess*.py`)
-- 从 ONS Excel / XLS 原始文件中提取人口数据。
-- 按年龄、年份、地区进行清洗与整形。
-- 支持英格兰、威尔士、苏格兰和英国整体数据处理。
+- 从 `data/raw/` 中的 ONS Excel / XLS 文件提取人口数据。
+- 将历史数据和投影数据清洗、整形为 `data/processed/` 下的 CSV 文件。
+- 支持英格兰、威尔士、苏格兰和英国整体投影输入。
 
-### 2. 数据融合 (`src/merge_projection_data.py`)
-- 合并历史观测数据与官方人口投影数据。
-- 计算各地区 65+ 人口占比，也就是老龄化比例。
+### 2. 数据融合 (`src/merge_projection_data.py`, `src/plot_ageing.py`)
+- 合并英格兰、威尔士和苏格兰的人口投影输出。
+- 计算各地区 65+ 人口占比，并写入 `data/processed/ageing_ratio_per_region.csv`。
+- 生成离线分析输出中的老龄化趋势图。
 
 ### 3. 时间序列预测
-- **Prophet**：趋势建模、变化点检测与预测曲线平滑。
-- **ARIMA**：自动参数搜索，并基于 AIC 准则选优。
+- **Prophet**：通过批处理流程生成英格兰和多地区预测输出。
+- **ARIMA**：对英格兰和多个地区与 Prophet 进行预测效果对比。
+- 预测 CSV 和指标由 FastAPI 服务从 `output/` 与 `output/multi_compare/` 读取。
 
 ### 4. 聚类分析 (`src/cluster_analysis.py`)
 - 使用 KMeans 识别老龄化趋势相似的地区。
@@ -89,8 +92,13 @@ forecasting-uk-ageing-trends/
 
 ### 5. 交互式 Web 平台
 - **Dashboard**：历史趋势折线图与地区统计卡片。
-- **Forecast**：支持地区和模型切换，并展示评估指标。
+- **Forecast**：支持地区切换，并在 Prophet 与 ARIMA 两个单模型视图之间切换，展示评估指标。
 - **Cluster**：支持调整聚类数量，展示地区分组与趋势曲线。
+
+### 6. FastAPI 后端
+- 通过 `/api/*` 接口提供处理后的数据和预测输出。
+- 在 `/docs` 本地托管 Swagger UI 静态资源，避免依赖公共 CDN。
+- 在 `/` 提供基础健康检查响应。
 
 ---
 
@@ -107,6 +115,8 @@ forecasting-uk-ageing-trends/
 pip install -r requirements.txt
 python main.py
 ```
+
+这会运行 `main.py` 中的 8 步离线流程：原始数据清洗、地区数据合并、老龄化比例生成、Prophet 预测、英格兰预测导出、ARIMA 对比、多地区 Prophet/ARIMA 对比和聚类分析。
 
 ### 2. 启动 FastAPI 后端
 
@@ -149,6 +159,7 @@ npm run dev
 | GET | `/api/forecast/arima?region=England` | ARIMA 历史 + 预测序列 |
 | GET | `/api/metrics` | Prophet vs ARIMA 评估指标：MAE、RMSE、MAPE |
 | GET | `/api/cluster?n_clusters=3` | KMeans 聚类结果与趋势数据 |
+| GET | `/` | 后端健康检查响应与文档入口提示 |
 
 ---
 
@@ -162,9 +173,10 @@ npm run dev
 | **FastAPI** | REST API 框架 |
 | **uvicorn** | ASGI 服务器 |
 | **Pandas / NumPy** | 数据处理与数值计算 |
-| **Prophet** | 时间序列预测 |
-| **pmdarima / Statsmodels** | ARIMA 建模与统计诊断 |
+| **Prophet** | 离线分析流程中的时间序列预测 |
+| **pmdarima / Statsmodels** | 离线 ARIMA 建模与统计诊断 |
 | **scikit-learn** | KMeans 聚类与数据预处理 |
+| **swagger-ui-bundle** | 后端本地 Swagger UI 文档资源 |
 
 ### 前端
 
@@ -194,21 +206,31 @@ CONFIG = {
 }
 ```
 
+根目录 `requirements.txt` 用于离线分析流程。`backend/requirements.txt` 是较轻量的 FastAPI 运行依赖。`frontend/package.json` 是 React/Vite 前端依赖。
+
+---
+
+## 生成文件说明
+
+- `data/processed/` 和 `output/` 保存演示所需的处理后数据、预测 CSV 和生成图表。
+- `frontend/dist/` 是 Vite 构建产物，已被 `.gitignore` 忽略，不应提交到 Git。
+- 如需重新构建前端产物，可运行 `cd frontend && npm run build`。
+
 ---
 
 ## 模型说明
 
 ### Prophet
-- 分段趋势建模与变化点检测。
-- 对长期预测曲线进行平滑，提高可读性。
+- 由 `src/model_prophet.py` 和 `src/multi_region_compare.py` 使用。
+- 生成预测图表和 CSV 输出，供后端读取并展示到仪表盘。
 
 ### ARIMA
-- 通过 `pmdarima` 自动搜索 `(p, d, q)` 参数。
-- 使用 AIC 准则选择适合平稳或差分平稳序列的模型。
+- 由 `src/model_arima.py` 和 `src/multi_region_compare.py` 使用。
+- 生成对比图、预测 CSV 以及 MAE / RMSE / MAPE 指标。
 
 ### KMeans
-- 对各地区老龄化时序轨迹进行标准化后聚类。
-- 按相似的长期老龄化模式对地区进行分组。
+- 由 `src/cluster_analysis.py` 和后端 cluster service 使用。
+- 对各地区老龄化时序轨迹标准化后分配聚类标签。
 
 ---
 
@@ -216,10 +238,10 @@ CONFIG = {
 
 - **全栈架构**：FastAPI 后端 + React 前端。
 - **官方数据流程**：ONS 原始数据、清洗结果和预测输出完整保留。
-- **多模型对比**：使用 MAE、RMSE、MAPE 对比 Prophet 与 ARIMA。
+- **多模型对比**：使用 `output/multi_compare/` 中的 MAE、RMSE、MAPE 输出对比 Prophet 与 ARIMA。
 - **交互式可视化**：支持地区、模型和聚类数量切换。
 - **端到端 ETL**：从原始数据到清洗数据、预测结果和图表输出。
-- **可复现分析**：固定随机种子，并保留处理后的输出文件。
+- **可复现分析**：固定随机种子、显式批处理配置，并保留处理后的输出文件。
 
 ---
 

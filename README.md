@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-A full-stack data analytics and forecasting platform built with **Python + React**. It uses official UK Office for National Statistics (ONS) population data to analyse and visualise long-term ageing trends across UK regions, focusing on the share of people aged 65 and over.
+A full-stack data analytics and forecasting platform built with **Python + React**. It uses UK Office for National Statistics (ONS) population datasets to clean regional population projections, calculate the 65+ population share, compare Prophet and ARIMA forecasts, run KMeans clustering, and expose the results through a FastAPI + React dashboard.
 
 | Layer | Stack |
 |---|---|
@@ -62,8 +62,9 @@ forecasting-uk-ageing-trends/
 | Item | Description |
 |---|---|
 | **Research focus** | 65+ population share in England, Wales and Scotland |
-| **Forecast horizon** | 2020-2150 |
-| **Methods** | Prophet, ARIMA, KMeans clustering |
+| **Pipeline forecast end year** | 2070 (`CONFIG["end_year"]`) |
+| **Model comparison horizon** | 30 years from the test split (`CONFIG["horizon"]`) |
+| **Methods** | ONS data cleaning, Prophet, ARIMA, KMeans clustering |
 | **Data source** | UK Office for National Statistics (ONS) |
 
 ---
@@ -71,17 +72,19 @@ forecasting-uk-ageing-trends/
 ## Core Features
 
 ### 1. Data Preprocessing (`src/preprocess*.py`)
-- Extracts population data from official ONS Excel / XLS files.
-- Cleans and reshapes data by age, year and region.
-- Supports England, Wales, Scotland and UK-level processing.
+- Extracts population data from ONS Excel / XLS files in `data/raw/`.
+- Cleans and reshapes historical and projection data into CSV files under `data/processed/`.
+- Supports England, Wales, Scotland and UK-level projection inputs.
 
-### 2. Data Integration (`src/merge_projection_data.py`)
-- Merges historical observations with official population projections.
-- Computes the 65+ population share for each region.
+### 2. Data Integration (`src/merge_projection_data.py`, `src/plot_ageing.py`)
+- Merges England, Wales and Scotland projection outputs.
+- Computes the 65+ population share and writes `data/processed/ageing_ratio_per_region.csv`.
+- Generates the ageing trend chart used by the offline analysis outputs.
 
 ### 3. Time-Series Forecasting
-- **Prophet**: trend modelling with changepoint detection and smoothing.
-- **ARIMA**: automatic parameter search with AIC-based model selection.
+- **Prophet**: generates England and multi-region forecast outputs through the batch pipeline.
+- **ARIMA**: compares against Prophet for England and for multiple regions.
+- Forecast CSVs and metrics are read by the FastAPI service from `output/` and `output/multi_compare/`.
 
 ### 4. Cluster Analysis (`src/cluster_analysis.py`)
 - Applies KMeans to identify regions with similar ageing trajectories.
@@ -89,8 +92,13 @@ forecasting-uk-ageing-trends/
 
 ### 5. Interactive Web Platform
 - **Dashboard**: historical trend chart and regional summary cards.
-- **Forecast**: interactive region and model switching with evaluation metrics.
+- **Forecast**: interactive region and single-model switching between Prophet and ARIMA, plus evaluation metrics.
 - **Cluster**: adjustable cluster count with grouped regional trend views.
+
+### 6. FastAPI Backend
+- Serves processed data and forecast outputs through `/api/*` endpoints.
+- Hosts Swagger UI assets locally at `/docs` to avoid relying on a public CDN.
+- Provides a root health response at `/`.
 
 ---
 
@@ -107,6 +115,8 @@ forecasting-uk-ageing-trends/
 pip install -r requirements.txt
 python main.py
 ```
+
+This runs the 8-step offline pipeline in `main.py`: raw data cleaning, regional merge, ageing-ratio generation, Prophet forecasts, England forecast export, ARIMA comparison, multi-region Prophet/ARIMA comparison and clustering.
 
 ### 2. Start the FastAPI backend
 
@@ -149,6 +159,7 @@ Open the app at http://localhost:5173.
 | GET | `/api/forecast/arima?region=England` | Historical + ARIMA forecast series |
 | GET | `/api/metrics` | Prophet vs ARIMA metrics: MAE, RMSE and MAPE |
 | GET | `/api/cluster?n_clusters=3` | KMeans cluster assignments and trend data |
+| GET | `/` | Backend health response and docs pointer |
 
 ---
 
@@ -162,9 +173,10 @@ Open the app at http://localhost:5173.
 | **FastAPI** | REST API framework |
 | **uvicorn** | ASGI server |
 | **Pandas / NumPy** | Data processing and numerical computing |
-| **Prophet** | Time-series forecasting |
-| **pmdarima / Statsmodels** | ARIMA modelling and diagnostics |
+| **Prophet** | Offline time-series forecasting in the analysis pipeline |
+| **pmdarima / Statsmodels** | Offline ARIMA modelling and diagnostics |
 | **scikit-learn** | KMeans clustering and preprocessing |
+| **swagger-ui-bundle** | Local Swagger UI assets for backend docs |
 
 ### Frontend
 
@@ -194,21 +206,31 @@ CONFIG = {
 }
 ```
 
+The root `requirements.txt` is for the offline analysis pipeline. `backend/requirements.txt` contains the lighter FastAPI runtime dependencies. `frontend/package.json` contains the React/Vite dependencies.
+
+---
+
+## Generated Artifacts
+
+- `data/processed/` and `output/` contain processed datasets, forecast CSVs and generated charts used by the demo.
+- `frontend/dist/` is a Vite build artifact and is ignored by `.gitignore`; it should not be committed.
+- Rebuild frontend assets with `cd frontend && npm run build` when needed.
+
 ---
 
 ## Model Notes
 
 ### Prophet
-- Piecewise trend modelling with changepoint detection.
-- Forecast smoothing for long-term trend readability.
+- Used by `src/model_prophet.py` and `src/multi_region_compare.py`.
+- Produces forecast charts and CSV outputs consumed by the dashboard backend.
 
 ### ARIMA
-- Automatic `(p, d, q)` parameter search via `pmdarima`.
-- AIC-based model selection for stationary or differenced time series.
+- Used by `src/model_arima.py` and `src/multi_region_compare.py`.
+- Produces comparison charts, forecast CSVs and MAE / RMSE / MAPE metrics.
 
 ### KMeans
-- Standardises regional ageing trajectories before clustering.
-- Groups regions by similar long-term ageing patterns.
+- Used by `src/cluster_analysis.py` and the backend cluster service.
+- Standardises regional ageing trajectories before assigning cluster labels.
 
 ---
 
@@ -216,10 +238,10 @@ CONFIG = {
 
 - **Full-stack architecture**: FastAPI backend with a React frontend.
 - **Official data workflow**: ONS raw data, cleaned CSV outputs and generated forecasts.
-- **Multi-model comparison**: Prophet vs ARIMA using MAE, RMSE and MAPE.
+- **Multi-model comparison**: Prophet vs ARIMA using MAE, RMSE and MAPE outputs from `output/multi_compare/`.
 - **Interactive visualisation**: Region, model and cluster controls in the browser.
 - **End-to-end ETL pipeline**: From raw data to processed data, forecasts and charts.
-- **Reproducible analysis**: Fixed random seed and committed processed outputs.
+- **Reproducible analysis**: Fixed random seed, explicit pipeline configuration and committed processed outputs.
 
 ---
 
